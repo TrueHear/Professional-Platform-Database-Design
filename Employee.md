@@ -1,36 +1,42 @@
 # 👨‍⚕️ Employee
 
-## 🧬 Employee Database Table
+## 📖 Overview
 
-| Field                     | Type         | Required | Notes                                                             |
-| ------------------------- | ------------ | -------- | ----------------------------------------------------------------- |
-| `_id`                     | ObjectId     | ✅        | MongoDB default                                                   |
-| `employeeId`              | String       | ✅ Unique | Slug, UUID, or internal employee code                             |
-| `firstName`               | String       | ✅        | First name                                                        |
-| `lastName`                | String       | ✅        | Last name                                                         |
-| `email`                   | String       | ✅ Unique | Primary email for login or contact                                |
-| `phone`                   | String       |          | Optional contact number                                           |
-| `assignments`             | Array        | ✅        | Roles scoped to `provider`, `clinic`, or `booth` with permissions |
-| `status`                  | String       | ✅        | `active`, `inactive`, or `archived`                               |
-| `metadata`                | Mixed Object |          | Flexible object for permissions, notes, or HR data                |
-| `createdAt` / `updatedAt` | Date         | ✅        | Managed by Mongoose                                               |
+An **employee** is a system user who can work at various levels: provider, clinic, or booth. Each employee can hold multiple roles, assigned per scope (e.g., clinic or booth), and can have specific permissions based on that role. Assignments include references to the role model and allow tracking who assigned them, when, and for how long.
 
 ---
 
-## 📦 Assignment Structure
+## 🧬 Employee Database Table
 
-Each object inside the `assignments` array:
+| Field                     | Type         | Required | Description                                                              |
+| ------------------------- | ------------ | -------- | ------------------------------------------------------------------------ |
+| `_id`                     | ObjectId     | ✅        | MongoDB internal unique ID                                               |
+| `employeeId`              | String       | ✅ Unique | Unique employee code or UUID                                             |
+| `firstName`               | String       | ✅        | Employee’s first name                                                    |
+| `lastName`                | String       | ✅        | Employee’s last name                                                     |
+| `email`                   | String       | ✅ Unique | Primary email used for login or communication                            |
+| `phone`                   | String       |          | Optional phone number                                                    |
+| `assignments`             | Array        | ✅        | List of scope-role-permission mappings (see `assignmentSchema`)          |
+| `status`                  | String       | ✅        | Employment or account status: `active`, `inactive`, or `archived`        |
+| `metadata`                | Mixed Object |          | Flexible structure for tags, department info, notes, or external linkage |
+| `createdAt` / `updatedAt` | Date         | ✅        | Auto-managed timestamps by Mongoose                                      |
 
-| Field         | Type      | Required | Notes                                                       |
-| ------------- | --------- | -------- | ----------------------------------------------------------- |
-| `scopeType`   | String    | ✅        | `provider`, `clinic`, or `booth`                            |
-| `entityId`    | ObjectId  | ✅        | Refers to the corresponding `scopeType` model               |
-| `scopeName`   | String    |          | Optional name (denormalized) for display/logging            |
-| `role`        | String    | ✅        | Role within the entity: `super_admin`, `clinic_admin`, etc. |
-| `permissions` | \[String] |          | Optional: `read`, `write`, `manage` (action-level access)   |
-| `assignedBy`  | ObjectId  |          | Ref: `Employee` who made the assignment                     |
-| `assignedAt`  | Date      |          | Auto timestamp when the assignment was created              |
-| `expiresAt`   | Date      |          | Optional expiration timestamp for temporary access          |
+---
+
+## 📘 Assignment Structure (`assignments`)
+
+Each assignment defines where the employee works, what role they have, and what permissions come with it.
+
+| Field         | Type      | Required | Description                                               |
+| ------------- | --------- | -------- | --------------------------------------------------------- |
+| `scopeType`   | String    | ✅        | Type of entity: `provider`, `clinic`, or `booth`          |
+| `entityId`    | ObjectId  | ✅        | Reference to the specific entity (refPath to `scopeType`) |
+| `scopeName`   | String    |          | Optional display name for the assigned entity             |
+| `role`        | ObjectId  | ✅        | Reference to a role document in `Role` collection         |
+| `permissions` | \[String] |          | Action types allowed: `read`, `write`, `manage`           |
+| `assignedBy`  | ObjectId  |          | Employee who made the assignment                          |
+| `assignedAt`  | Date      |          | Default timestamp for when the assignment was made        |
+| `expiresAt`   | Date      |          | Optional expiration for time-limited roles                |
 
 ---
 
@@ -52,18 +58,11 @@ const assignmentSchema = new Schema({
     refPath: 'assignments.scopeType'
   },
   scopeName: {
-    type: String // optional for UI/logging
+    type: String
   },
   role: {
-    type: String,
-    enum: [
-      'super_admin',
-      'clinic_admin',
-      'professional',
-      'technician',
-      'support',
-      'other'
-    ],
+    type: Schema.Types.ObjectId,
+    ref: 'Role',
     required: true
   },
   permissions: {
@@ -117,3 +116,5 @@ const employeeSchema = new Schema({
 
 module.exports = mongoose.model('Employee', employeeSchema);
 ```
+
+---

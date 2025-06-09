@@ -1,42 +1,50 @@
 # 📦 Booth
 
+## 📖 Overview
+
+A **booth** represents a testing, diagnostic, or service station within a clinic. Booths are tied to a single **clinic** and often serve patients for specific services such as audiometry or questionnaire-based assessments. Each booth can be configured with its own settings, test options, hardware limits, and staff assignments.
+
+Booths support local customization of diagnostic workflows, employee assignments, and test settings. They can be physical (e.g., a soundproof room), semi-mobile (e.g., a kiosk), or virtual (e.g., telehealth setups).
+
+---
+
 ## 🧩 Booth Database Table
 
-| Field                                   | Type             | Required | Notes                                                       |
-| --------------------------------------- | ---------------- | -------- | ----------------------------------------------------------- |
-| `_id`                                   | ObjectId         | ✅        | MongoDB default                                             |
-| `boothId`                               | Number           | ✅ Unique | Internal numeric booth identifier                           |
-| `boothName`                             | String           | ✅        | Display name of the booth                                   |
-| `clinic`                                | ObjectId         | ✅        | Reference to parent Clinic                                  |
-| `userName`                              | String           | ✅ Unique | Login username                                              |
-| `password`                              | String           | ✅        | Hashed password                                             |
-| `boothAddress`                          | String           | ✅        | Display address for humans                                  |
-| `status`                                | String           | ✅        | `active`, `inactive`, `maintenance`, or `archived`          |
-| `type`                                  | String           |          | `room`, `kiosk`, `mobile`, `outdoor`, `virtual`, or `other` |
-| `services`                              | \[String]        |          | List of services offered (e.g. `["audiometry"]`)            |
-| `capacity`                              | Number           |          | Optional maximum throughput or occupancy                    |
-| `role`                                  | String           |          | Default: `"Booth"`                                          |
-| `tests`                                 | \[Object]        |          | Array of test configs with `testId` and `included` flag     |
-| `employees`                             | \[ObjectId]      |          | Staff assigned to this booth                                |
-| `dinSettings`                           | \[ObjectId]      |          | Ref: `DigitInNoiseSettingv1`                                |
-| `dinSettingsRound1Constant`             | \[ObjectId]      |          | Ref: `DigitInNoiseSettingv1`                                |
-| `dinSettingsRound2Adaptive`             | \[ObjectId]      |          | Ref: `DigitInNoiseSettingv1`                                |
-| `dinSettingsRound3Adaptive`             | \[ObjectId]      |          | Ref: `DigitInNoiseSettingv1`                                |
-| `antiphasicDinSettings`                 | \[ObjectId]      |          | Ref: `AntiphasicDigitInNoiseSettingv1`                      |
-| `questionaireSettings`                  | \[ObjectId]      |          | Ref: `QuestionaireSetting`                                  |
-| `yesNoQuestionnaireSettings`            | \[ObjectId]      |          | Ref: `YesNoQuestionnaireSetting`                            |
-| `audiogramSettings`                     | \[ObjectId]      |          | Ref: `AudiogramSettings`                                    |
-| `defaultDinSettingsIndex`               | Number           |          | Index into `dinSettings`                                    |
-| `defaultDinSettingsRound1ConstantIndex` | Number           |          | Index into `dinSettingsRound1Constant`                      |
-| `defaultDinSettingsRound2AdaptiveIndex` | Number           |          | Index into `dinSettingsRound2Adaptive`                      |
-| `defaultDinSettingsRound3AdaptiveIndex` | Number           |          | Index into `dinSettingsRound3Adaptive`                      |
-| `defaultAntiphasicDinSettingsIndex`     | Number           |          | Index into `antiphasicDinSettings`                          |
-| `defaultQuestionaireIndex`              | Number           |          | Index into `questionaireSettings`                           |
-| `defaultYesNoQuestionnaireIndex`        | Number           |          | Index into `yesNoQuestionnaireSettings`                     |
-| `defaultAudiogramSettingsIndex`         | Number           |          | Index into `audiogramSettings`                              |
-| `address`                               | Object (GeoJSON) |          | Geolocation + address details                               |
-| `metadata`                              | Mixed Object     |          | For booth-specific custom data                              |
-| `createdAt` / `updatedAt`               | Date             | ✅        | Mongoose timestamps                                         |
+| Field                                   | Type             | Required | Description                                                                 |
+| --------------------------------------- | ---------------- | -------- | --------------------------------------------------------------------------- |
+| `_id`                                   | ObjectId         | ✅        | MongoDB auto-generated unique identifier                                    |
+| `boothId`                               | Number           | ✅ Unique | Numeric internal identifier                                                 |
+| `boothName`                             | String           | ✅        | Human-readable booth label                                                  |
+| `clinic`                                | ObjectId         | ✅        | Reference to the clinic this booth belongs to                               |
+| `userName`                              | String           | ✅ Unique | Booth-specific login username                                               |
+| `password`                              | String           | ✅        | Hashed password                                                             |
+| `boothAddress`                          | String           | ✅        | Display address (used for front-end or human viewing)                       |
+| `status`                                | String           | ✅        | Current operational state: `active`, `inactive`, `maintenance`, `archived`  |
+| `type`                                  | String           |          | Booth category: `room`, `kiosk`, `mobile`, `outdoor`, `virtual`, or `other` |
+| `services`                              | \[String]        |          | Functional capabilities (e.g. `["audiometry"]`)                             |
+| `capacity`                              | Number           |          | Optional maximum patient throughput or occupancy                            |
+| `role`                                  | String           |          | Optional role tag for internal labeling                                     |
+| `tests`                                 | \[Object]        |          | List of available tests and inclusion flags                                 |
+| `employees`                             | \[ObjectId]      |          | Staff members assigned to operate or support the booth                      |
+| `dinSettings`                           | \[ObjectId]      |          | Digit-in-noise test configurations                                          |
+| `dinSettingsRound1Constant`             | \[ObjectId]      |          | DIN settings for round 1                                                    |
+| `dinSettingsRound2Adaptive`             | \[ObjectId]      |          | DIN settings for round 2                                                    |
+| `dinSettingsRound3Adaptive`             | \[ObjectId]      |          | DIN settings for round 3                                                    |
+| `antiphasicDinSettings`                 | \[ObjectId]      |          | Antiphasic DIN configurations                                               |
+| `questionaireSettings`                  | \[ObjectId]      |          | Linked questionnaire settings                                               |
+| `yesNoQuestionnaireSettings`            | \[ObjectId]      |          | Linked yes/no questionnaire settings                                        |
+| `audiogramSettings`                     | \[ObjectId]      |          | Audiogram test settings                                                     |
+| `defaultDinSettingsIndex`               | Number           |          | Index of default DIN config in `dinSettings`                                |
+| `defaultDinSettingsRound1ConstantIndex` | Number           |          | Index of default config in round 1 list                                     |
+| `defaultDinSettingsRound2AdaptiveIndex` | Number           |          | Index of default config in round 2 list                                     |
+| `defaultDinSettingsRound3AdaptiveIndex` | Number           |          | Index of default config in round 3 list                                     |
+| `defaultAntiphasicDinSettingsIndex`     | Number           |          | Index into `antiphasicDinSettings`                                          |
+| `defaultQuestionaireIndex`              | Number           |          | Default index in questionnaire settings                                     |
+| `defaultYesNoQuestionnaireIndex`        | Number           |          | Default index in yes/no questionnaire settings                              |
+| `defaultAudiogramSettingsIndex`         | Number           |          | Default index for audiogram settings                                        |
+| `address`                               | Object (GeoJSON) |          | Structured geographic address with coordinates                              |
+| `metadata`                              | Mixed Object     |          | Optional structure for custom integrations, UI settings, or overrides       |
+| `createdAt` / `updatedAt`               | Date             | ✅        | Auto-managed creation and update timestamps                                 |
 
 ---
 
@@ -130,3 +138,5 @@ boothSchema.index({ 'address.coordinates': '2dsphere' });
 
 module.exports = mongoose.model('Booth', boothSchema);
 ```
+
+---

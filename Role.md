@@ -1,16 +1,24 @@
-# 📘 `Role.md`
+# 📘 Role
+
+## 📖 Overview
+
+A **role** defines the title, permissions, and scope of responsibility that an employee can have within the system. Roles are reusable across entities (e.g., a `clinic_admin` role may apply to multiple clinics) and allow centralized control over what actions different types of users can perform.
+
+Each role is tied to a **scope type** (e.g., `provider`, `clinic`, or `booth`), and comes with a default set of **permissions** (`read`, `write`, or `manage`). These can be customized per assignment.
+
+---
 
 ## 🧬 Role Database Table
 
-| Field                     | Type      | Required | Notes                                                              |
-| ------------------------- | --------- | -------- | ------------------------------------------------------------------ |
-| `_id`                     | ObjectId  | ✅        | MongoDB default                                                    |
-| `roleKey`                 | String    | ✅ Unique | Internal key (e.g. `super_admin`, `technician`)                    |
-| `label`                   | String    | ✅        | Human-readable display name (e.g. "Super Admin")                   |
-| `description`             | String    |          | What this role does or controls                                    |
-| `scopeType`               | String    | ✅        | Entity this role can be assigned to: `provider`, `clinic`, `booth` |
-| `defaultPermissions`      | \[String] | ✅        | Access rights: `read`, `write`, `manage`                           |
-| `createdAt` / `updatedAt` | Date      | ✅        | Mongoose timestamps                                                |
+| Field                     | Type      | Required | Description                                                             |
+| ------------------------- | --------- | -------- | ----------------------------------------------------------------------- |
+| `_id`                     | ObjectId  | ✅        | MongoDB auto-generated unique identifier                                |
+| `roleKey`                 | String    | ✅ Unique | Machine-friendly identifier (e.g. `super_admin`, `technician`)          |
+| `label`                   | String    | ✅        | Human-readable title for UI (e.g. “Super Admin”, “Hearing Specialist”)  |
+| `description`             | String    |          | Optional explanation of the role’s responsibilities                     |
+| `scopeType`               | String    | ✅        | Context where this role is applicable: `provider`, `clinic`, or `booth` |
+| `defaultPermissions`      | \[String] | ✅        | Default set of actions allowed: `read`, `write`, `manage`               |
+| `createdAt` / `updatedAt` | Date      | ✅        | Auto-managed timestamps for record creation and updates                 |
 
 ---
 
@@ -53,104 +61,6 @@ const roleSchema = new Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('Role', roleSchema);
-```
-
----
-
-# 👨‍⚕️ `Employee.md` (With Centralized Role Model)
-
-## 🧬 Employee Database Table
-
-| Field                     | Type         | Required | Notes                                                          |
-| ------------------------- | ------------ | -------- | -------------------------------------------------------------- |
-| `_id`                     | ObjectId     | ✅        | MongoDB default                                                |
-| `employeeId`              | String       | ✅ Unique | Slug, UUID, or internal employee code                          |
-| `firstName`               | String       | ✅        | First name                                                     |
-| `lastName`                | String       | ✅        | Last name                                                      |
-| `email`                   | String       | ✅ Unique | Primary email for login or contact                             |
-| `phone`                   | String       |          | Optional contact number                                        |
-| `assignments`             | Array        | ✅        | Role assignments, each referencing a role, entity, permissions |
-| `status`                  | String       | ✅        | `active`, `inactive`, or `archived`                            |
-| `metadata`                | Mixed Object |          | Flexible object for HR data, tags, notes, etc.                 |
-| `createdAt` / `updatedAt` | Date         | ✅        | Managed by Mongoose                                            |
-
----
-
-## 🧾 Mongoose Schema: `employeeSchema.js`
-
-```js
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
-
-const assignmentSchema = new Schema({
-  scopeType: {
-    type: String,
-    enum: ['provider', 'clinic', 'booth'],
-    required: true
-  },
-  entityId: {
-    type: Schema.Types.ObjectId,
-    required: true,
-    refPath: 'assignments.scopeType'
-  },
-  scopeName: {
-    type: String
-  },
-  role: {
-    type: Schema.Types.ObjectId,
-    ref: 'Role',
-    required: true
-  },
-  permissions: {
-    type: [String],
-    enum: ['read', 'write', 'manage'],
-    default: ['read']
-  },
-  assignedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'Employee'
-  },
-  assignedAt: {
-    type: Date,
-    default: Date.now
-  },
-  expiresAt: {
-    type: Date
-  }
-}, { _id: false });
-
-const employeeSchema = new Schema({
-  employeeId: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true
-  },
-
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String },
-
-  assignments: {
-    type: [assignmentSchema],
-    required: true
-  },
-
-  status: {
-    type: String,
-    enum: ['active', 'inactive', 'archived'],
-    default: 'active'
-  },
-
-  metadata: {
-    type: Schema.Types.Mixed,
-    default: {}
-  }
-
-}, { timestamps: true });
-
-module.exports = mongoose.model('Employee', employeeSchema);
 ```
 
 ---

@@ -1,36 +1,35 @@
 # 🧾 System Data Model Overview
 
-This document provides a high-level overview of the core data structure for your system, centered around:
-
-```bash
-Provider → Clinics → Booths → Employees
+```plaintext
+Provider → Clinic → Booth → Employee
 ```
 
-Each level builds on the previous and represents a real-world organizational or operational structure.
+Each level represents a physical or virtual component of your operational network, with employees optionally assigned at any layer.
 
 ---
 
-## 🏗️ Entity Relationships
+## 🏗️ Entity Relationship Diagram
 
 ```plaintext
 Provider
-├── has many Clinics
-│   ├── has many Booths
-│   │   └── has many Employees (optional)
-│   └── has many Employees
-└── has many Employees
+├── Clinics
+│   ├── Booths
+│   │   └── Employees
+│   └── Employees
+└── Employees
 ```
 
 ---
 
-## 📦 Models Overview
+## 📦 Core Models Overview
 
 ### 1. 🧠 **Provider**
 
-Represents the top-level organization (e.g. a hospital group, NGO, school system).
+Represents the top-level institution or organization, such as a hospital chain, NGO, or national agency.
 
-* Has many **Clinics**
-* May directly employ **Employees** at the provider level
+* Can manage multiple **Clinics**
+* Can employ **Employees** at the organization-wide level
+* Has an address and metadata for configuration and compliance
 
 🔗 [View Provider Schema →](./provider.md)
 
@@ -38,11 +37,11 @@ Represents the top-level organization (e.g. a hospital group, NGO, school system
 
 ### 2. 🏥 **Clinic**
 
-A physical or virtual facility under a Provider.
+Represents a location or branch under a Provider. Can be physical (e.g. building) or virtual (e.g. telehealth service unit).
 
 * Belongs to a **Provider**
-* May host multiple **Booths**
-* May have assigned **Employees**
+* Can include multiple **Booths**
+* Can have **Employees** scoped to the clinic
 
 🔗 [View Clinic Schema →](./clinic.md)
 
@@ -50,11 +49,12 @@ A physical or virtual facility under a Provider.
 
 ### 3. 🎧 **Booth**
 
-An individual testing or service station (room, kiosk, or mobile unit).
+Represents a dedicated service point for testing, diagnosis, or care delivery. Can be a room, mobile unit, kiosk, or digital station.
 
 * Belongs to a **Clinic**
-* Can be configured with test settings
-* May be staffed with **Employees**
+* Configurable with test settings and limits
+* May include hardware-specific configurations
+* Supports dedicated **Employees**
 
 🔗 [View Booth Schema →](./booth.md)
 
@@ -62,42 +62,47 @@ An individual testing or service station (room, kiosk, or mobile unit).
 
 ### 4. 👨‍⚕️ **Employee**
 
-Staff member associated with a Provider, Clinic, or Booth.
+Represents any system user responsible for operations, care, or administration.
 
-* Can be associated with any level of the hierarchy
-* Has a defined `role` and `status`
-* Used for access control, scheduling, assignments
+* Can be assigned to a **Provider**, **Clinic**, or **Booth**
+* Assignment includes a **Role** and **Permissions**
+* Supports multiple active assignments
+* Centralized `Role` model enables reusable role definitions
 
 🔗 [View Employee Schema →](./employee.md)
 
 ---
 
-## ⚙️ Relationship Summary Table
+### 5. 🛡️ **Role**
 
-| Model    | References                    | Referenced By      |
-| -------- | ----------------------------- | ------------------ |
-| Provider | —                             | Clinics, Employees |
-| Clinic   | `provider`                    | Booths, Employees  |
-| Booth    | `clinic`                      | Employees          |
-| Employee | `provider`, `clinic`, `booth` | —                  |
+Central definition for titles, access levels, and scope applicability.
 
----
+* Defines what each employee *can do* based on their assignment
+* Supports predefined **permissions** like `read`, `write`, and `manage`
+* Scoped per level: `provider`, `clinic`, or `booth`
 
-## 🔐 Common Field Conventions
-
-* **`status`**: Used across entities to manage lifecycle (`active`, `inactive`, `archived`)
-* **`metadata`**: Flexible field for custom flags, notes, or external integration data
-* **`address.coordinates`**: GeoJSON used in Provider, Clinic, Booth for map-based queries
+🔗 [View Role Schema →](./role.md)
 
 ---
 
-## 🧩 Optional Extensions
+## ⚙️ Reference Table
 
-You can extend this model with:
+| Model    | References                      | Referenced By               |
+| -------- | ------------------------------- | --------------------------- |
+| Provider | —                               | Clinics, Employees          |
+| Clinic   | `provider`                      | Booths, Employees           |
+| Booth    | `clinic`                        | Employees                   |
+| Employee | `assignments → entityId + role` | —                           |
+| Role     | —                               | Employees (via assignments) |
 
-* **Appointments** (linked to Booth, Patient, and Time)
-* **Schedules** or **Shifts** for Employees
-* **Audit logs** for changes
-* **Permissions / Roles** at a finer level
+---
+
+## 🧩 Shared Field Conventions
+
+| Field         | Description                                                                 |
+| ------------- | --------------------------------------------------------------------------- |
+| `status`      | Common status for lifecycle control (`active`, `inactive`, `archived`)      |
+| `metadata`    | Open field for extensibility (flags, tags, notes, integrations)             |
+| `coordinates` | GeoJSON used in address fields for geospatial indexing and location queries |
 
 ---
