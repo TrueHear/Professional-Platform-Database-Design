@@ -2,9 +2,11 @@
 
 ```plaintext
 Provider → Clinic → Booth → Employee
+                        ↓
+                     Patient
 ```
 
-Each level represents a physical or virtual component of your operational network, with employees optionally assigned at any layer.
+Each level represents a physical or virtual component of your operational network, with employees optionally assigned at any layer. Patients are serviced at the booth or clinic level, and their data connects to various clinical test models.
 
 ---
 
@@ -15,6 +17,7 @@ Provider
 ├── Clinics
 │   ├── Booths
 │   │   └── Employees
+│   │       └── Patients
 │   └── Employees
 └── Employees
 ```
@@ -85,15 +88,28 @@ Central definition for titles, access levels, and scope applicability.
 
 ---
 
+### 6. 🧍‍♂️ **Patient**
+
+Represents an individual receiving care or testing within the system.
+
+* Tracked independently of employees
+* Linked to test records like **Audiogram**, **Digit-in-Noise**, and **Questionnaires**
+* Supports visit logs, identifiers, geospatial address info, and compliance metadata
+
+🔗 [View Patient Schema →](./patient.md)
+
+---
+
 ## ⚙️ Reference Table
 
-| Model    | References                      | Referenced By               |
-| -------- | ------------------------------- | --------------------------- |
-| Provider | —                               | Clinics, Employees          |
-| Clinic   | `provider`                      | Booths, Employees           |
-| Booth    | `clinic`                        | Employees                   |
-| Employee | `assignments → entityId + role` | —                           |
-| Role     | —                               | Employees (via assignments) |
+| Model    | References                         | Referenced By                         |
+| -------- | ---------------------------------- | ------------------------------------- |
+| Provider | —                                  | Clinics, Employees                    |
+| Clinic   | `provider`                         | Booths, Employees                     |
+| Booth    | `clinic`                           | Employees, Patients (via tests)       |
+| Employee | `assignments → entityId + role`    | —                                     |
+| Role     | —                                  | Employees (via assignments)           |
+| Patient  | `booth`, `tests`, `questionnaires` | Audiogram, DIN, Questionnaire modules |
 
 ---
 
